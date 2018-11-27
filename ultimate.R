@@ -1,4 +1,5 @@
 rm(list = ls()) # clear cache
+
 options(scipen = 999)
 setwd("/home/ravshan/Dropbox/project/valuation/")
 # input data
@@ -63,7 +64,7 @@ mega <- function(cA, alphaA, rA, pina, cR, alphaR, rR, b1A, b2A, b3A, b1R, b2R, 
   A[1] <- 1
   
   for(m in 2:Ms){
-    #solve for M(L-1):
+    #solve for M(L_{t-1}):
     M[m] <- POP[m] - POP[m-1] + L[m-1]
     #solve for A(M)
     for(i in 1:(m-1)){
@@ -105,20 +106,15 @@ SSE <- function(params){
   b3R <- params[13]
   
   megane <- mega(cA, alphaA, rA, pina, cR, alphaR, rR, b1A, b2A, b3A, b1R, b2R, b3R)
-  if(q_b == 1){
-    for(q in 1:Qs){
-      ADDhat <- megane$A[3*q - 2] + megane$A[3*q - 1] + megane$A[3*q]
-      LOSShat <- megane$L[3*q - 2] + megane$L[3*q - 1] + megane$L[3*q]
-      ENDhat <- sum(megane$C[1:(3*q),3*q])
-    
-      ans <- ans + (ADD[q] - ADDhat[q])^2 + (LOSS[q] - LOSShat[q])^2
-    }
-  }else if(q_b > 1){
-    
+  
+  for(q in q_b:Qs){
+    ADDhat <-  megane$A[3*q - 2] + megane$A[3*q - 1] + megane$A[3*q]
+    LOSShat <- megane$L[3*q - 2] + megane$L[3*q - 1] + megane$L[3*q]
+    ENDhat <- sum(megane$C[1:(3*q),3*q])
+    ans <- ans + (ADD[q] - ADDhat)^2 + (LOSS[q] - LOSShat)^2
   }
-  ans <- ans + (END[q] - ENDhat[q])^2
+  ans <- ans + (END[q] - ENDhat)^2
   return(ans)
 }
 
-#mega(1,1,1,0,1,1,1,1,1,1,1,1,1)$M
-x <- nlm(f = SSE, p=c(1,1,1,0,1,1,1,1,1,1,1,1,1))
+nlm(f=SSE, p=c(1,1,1,0,1,1,1,1,1,1,1,1,1))
